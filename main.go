@@ -11,6 +11,7 @@ package main
 
 import (
 	"encoding/xml"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -38,9 +39,15 @@ type Path struct {
 	D string `xml:"d,attr"`
 }
 
+var errHasWidthHeight = errors.New("width and/or height already defined")
+
+var (
+	versionFlag = flag.Bool("v", false, "show the current version")
+	forceFlag   = flag.Bool("f", false, "force patching (e.g. already patched files)")
+)
+
 func main() {
 	flag.Usage = myUsage
-	versionFlag := flag.Bool("v", false, "show the current version")
 	flag.Parse()
 	if *versionFlag {
 		fmt.Printf("%s %s\n", commandName, version)
@@ -65,7 +72,7 @@ func main() {
 		}
 		dat2, err := modifyFile(dat)
 		if err != nil {
-			fmt.Printf("SKIPPED: %s: %s", path, err)
+			fmt.Printf("SKIPPED: %s: %s\n", path, err)
 			continue
 		}
 		if err := os.WriteFile(path, dat2, 0644); err != nil {
@@ -120,6 +127,9 @@ func modifyFile(dat []byte) ([]byte, error) {
 }
 
 func fixSVG(g *SVG) error {
+	if (g.Width != "" || g.Height != "") && !*forceFlag {
+		return errHasWidthHeight
+	}
 	width, height, err := parseViewBox(g)
 	if err != nil {
 		return err
@@ -131,7 +141,7 @@ func fixSVG(g *SVG) error {
 
 func parseViewBox(g *SVG) (int, int, error) {
 	if g.ViewBox == "" {
-		return 0, 0, fmt.Errorf("No viewBox defined")
+		return 0, 0, fmt.Errorf("no viewBox defined")
 	}
 	parts := strings.Split(g.ViewBox, " ")
 	if len(parts) != 4 {
