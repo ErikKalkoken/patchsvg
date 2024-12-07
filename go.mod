@@ -1,6 +1,6 @@
 module github.com/ErikKalkoken/patchsvg
 
-go 1.23.3
+go 1.19
 
 require github.com/stretchr/testify v1.10.0
 

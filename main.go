@@ -71,7 +71,7 @@ func main() {
 		if err := os.WriteFile(path, dat2, 0644); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Fixed: %s\n", path)
+		fmt.Printf("Patched: %s\n", path)
 	}
 }
 
